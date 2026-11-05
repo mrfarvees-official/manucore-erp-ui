@@ -32,13 +32,21 @@ export const POST = withValidOriginAndJson(async (_request, body) => {
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    tenantId: process.env.DEFAULT_TENANT_ID,
-                    ...parsed.data,
-                }),
+                body: JSON.stringify(parsed.data),
             },
         );
-    } catch {
+    } catch (err) {
+        const status = (err as { status?: number })?.status;
+
+        if (status === 401) {
+            return NextResponse.json(
+                { message: "Incorrect email or password." },
+                { status: 401 },
+            );
+        }
+
+        console.error("Login backend call failed:", err);
+
         return NextResponse.json(
             { message: "Unable to sign in. Please try again." },
             { status: 502 },

@@ -1,9 +1,6 @@
-
 import { NextRequest, NextResponse } from "next/server";
 
-type RouteHandler = (
-  request: NextRequest,
-) => Promise<NextResponse>;
+type RouteHandler = (request: NextRequest) => Promise<NextResponse>;
 
 type JsonHandler = (
   request: NextRequest,
