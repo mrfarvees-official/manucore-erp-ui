@@ -1,30 +1,41 @@
 import { Suspense } from "react";
-import { LogoutButton } from "@/feature/auth/logout-button";
-import Sidebar from "@/feature/navigation/sidebar";
+import AppShell from "@/feature/navigation/app-shell";
 import { requireUser } from "@/lib/auth/session";
 import { getNavigation } from "@/lib/navigation";
+import { loadNotifications } from "@/lib/server/loads/notifications";
+import { loadTenantName } from "@/lib/server/loads/tenant";
 
 async function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) {
-    const user = await requireUser();
+  const user = await requireUser();
 
-    return (
-        <div className="min-h-screen bg-gray-50 lg:flex">
-            <Sidebar
-                groups={getNavigation(user)}
-                user={{ name: user.name, email: user.email }}
-                footer={<LogoutButton />}
-            />
-            <div className="min-w-0 flex-1">{children}</div>
-        </div>
-    );
+  const [tenantName, notifications] = await Promise.all([
+    loadTenantName(user),
+    loadNotifications(),
+  ]);
+
+  return (
+    <AppShell
+      groups={getNavigation(user)}
+      tenantName={tenantName}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        roles: user.roles,
+      }}
+      notifications={notifications}
+    >
+      {children}
+    </AppShell>
+  );
 }
 
 export default function ProtectedLayout({
-    children,
+  children,
 }: Readonly<{ children: React.ReactNode }>) {
-    return (
-        <Suspense fallback={null}>
-            <AuthGate>{children}</AuthGate>
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={null}>
+      <AuthGate>{children}</AuthGate>
+    </Suspense>
+  );
 }
