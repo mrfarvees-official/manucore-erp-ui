@@ -219,7 +219,7 @@ function GroupEditor({
               onChange={(e) =>
                 updateCondition(index, { value: e.target.value })
               }
-              className={`${field} min-w-0 flex-[2] basis-40`}
+              className={`${field} min-w-0 flex-2 basis-40`}
             />
             <Button
               variant="secondary"
