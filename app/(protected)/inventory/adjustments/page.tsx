@@ -2,26 +2,39 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { buttonClasses } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { authedFetch } from "@/lib/api";
+import { can } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/session";
 import type { AdjustmentPage } from "@/lib/items";
 import { loadOrRedirect } from "@/lib/server/load";
+import type { User } from "@/lib/users";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const numberFormat = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 3,
-});
+const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 });
 
-type SearchParams = Promise<{ page?: string; item?: string }>;
+type SearchParams = Promise<{ page?: string; item?: string; user?: string }>;
 
-function pageHref(page: number, item?: string) {
-  const params = new URLSearchParams({ page: String(page) });
+function pageHref(page: number, item?: string, user?: string) {
+  const params = new URLSearchParams();
 
-  if (item) {
-    params.set("item", item);
+  if (page > 0) params.set("page", String(page));
+  if (item) params.set("item", item);
+  if (user) params.set("user", user);
+
+  const query = params.toString();
+
+  return query ? `/inventory/adjustments?${query}` : "/inventory/adjustments";
+}
+
+async function loadUserName(id: string): Promise<string | null> {
+  try {
+    const user = await authedFetch<User>(`/api/v1/identity/users/${id}`);
+
+    return user.name;
+  } catch {
+    return null;
   }
-
-  return `/inventory/adjustments?${params.toString()}`;
 }
 
 async function AdjustmentsContent({
@@ -29,35 +42,52 @@ async function AdjustmentsContent({
 }: {
   searchParams: SearchParams;
 }) {
-  await requirePermission("INVENTORY.ADJUSTMENTS:READ");
+  const me = await requirePermission("INVENTORY.ADJUSTMENTS:READ");
+  const canViewUsers = can(me, "IDENTITY.USERS:READ");
 
-  const { page, item } = await searchParams;
+  const { page, item, user } = await searchParams;
   const pageNumber = Math.max(0, Number.parseInt(page ?? "0", 10) || 0);
 
-  if (item !== undefined && !UUID.test(item)) {
-    notFound();
-  }
+  if (item !== undefined && !UUID.test(item)) notFound();
+  if (user !== undefined && !UUID.test(user)) notFound();
 
   const query = new URLSearchParams({ page: String(pageNumber), size: "20" });
 
-  if (item) {
-    query.set("itemId", item);
-  }
+  if (item) query.set("itemId", item);
+  if (user) query.set("actorId", user);
 
-  const data = await loadOrRedirect(() =>
-    authedFetch<AdjustmentPage>(
-      `/api/v1/inventory/adjustments?${query.toString()}`,
+  const [data, actorName] = await Promise.all([
+    loadOrRedirect(() =>
+      authedFetch<AdjustmentPage>(
+        `/api/v1/inventory/adjustments?${query.toString()}`,
+      ),
     ),
-  );
+    user && canViewUsers ? loadUserName(user) : Promise.resolve(null),
+  ]);
 
   return (
     <>
-      {item && (
+      {(item || user) && (
         <p className="mb-4 text-sm text-gray-600">
-          Showing history for{" "}
-          <span className="font-medium">
-            {data.items[0]?.sku ?? "this item"}
-          </span>
+          Showing adjustments
+          {item && (
+            <>
+              {" "}
+              for{" "}
+              <span className="font-medium">
+                {data.items[0]?.sku ?? "this item"}
+              </span>
+            </>
+          )}
+          {user && (
+            <>
+              {" "}
+              made by{" "}
+              <span className="font-medium">
+                {actorName ?? `${user.slice(0, 8)}…`}
+              </span>
+            </>
+          )}
           .{" "}
           <Link
             href="/inventory/adjustments"
@@ -102,11 +132,24 @@ async function AdjustmentsContent({
                   {numberFormat.format(a.quantityAfter)}
                 </td>
                 <td className="px-4 py-3 text-gray-600">{a.reason ?? "—"}</td>
-                <td
-                  className="px-4 py-3 text-gray-500"
-                  title={a.actorId ?? undefined}
-                >
-                  {a.actorId ? `${a.actorId.slice(0, 8)}…` : "—"}
+                <td className="px-4 py-3 font-mono text-xs">
+                  {a.actorId ? (
+                    canViewUsers ? (
+                      <Link
+                        href={`/admin/users/${a.actorId}`}
+                        title={`Open profile ${a.actorId}`}
+                        className="text-blue-700 hover:underline"
+                      >
+                        {a.actorId.slice(0, 8)}…
+                      </Link>
+                    ) : (
+                      <span className="text-gray-500" title={a.actorId}>
+                        {a.actorId.slice(0, 8)}…
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -121,32 +164,13 @@ async function AdjustmentsContent({
         </table>
       </div>
 
-      {data.totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="text-gray-500">
-            Page {data.page + 1} of {data.totalPages} ({data.totalElements}{" "}
-            adjustments)
-          </span>
-          <div className="flex gap-3">
-            {data.page > 0 && (
-              <Link
-                href={pageHref(data.page - 1, item)}
-                className="text-blue-700 hover:underline"
-              >
-                Previous
-              </Link>
-            )}
-            {data.page + 1 < data.totalPages && (
-              <Link
-                href={pageHref(data.page + 1, item)}
-                className="text-blue-700 hover:underline"
-              >
-                Next
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={data.page}
+        totalPages={data.totalPages}
+        totalElements={data.totalElements}
+        noun="adjustments"
+        hrefFor={(p) => pageHref(p, item, user)}
+      />
     </>
   );
 }
@@ -157,7 +181,7 @@ export default function AdjustmentsPage({
   searchParams: SearchParams;
 }) {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8 text-gray-900">
+    <main className="mx-auto max-w-8xl px-6 py-8 text-gray-900">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Stock adjustments</h1>
         <Link

@@ -4,20 +4,33 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cardClass, fieldClass, labelClass } from "@/components/ui/styles";
-import type { Item } from "@/lib/items";
+import { ITEM_TYPES, ITEM_TYPE_LABELS, type Item } from "@/lib/items";
 
-const QUANTITY = /^\d{1,16}(\.\d{1,3})?$/;
+const DECIMAL = /^\d{1,16}(\.\d{1,3})?$/;
 const UNITS = ["pcs", "kg", "g", "l", "ml", "m", "cm", "box", "set"];
 const numberFormat = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 3,
 });
 
-export function ItemForm({ item }: { item?: Item }) {
+export function ItemForm({
+  item,
+  categories = [],
+}: {
+  item?: Item;
+  categories?: string[];
+}) {
   const router = useRouter();
   const [sku, setSku] = useState(item?.sku ?? "");
   const [name, setName] = useState(item?.name ?? "");
   const [unit, setUnit] = useState(item?.unit ?? "");
   const [quantity, setQuantity] = useState("0");
+  const [category, setCategory] = useState(item?.category ?? "");
+  const [type, setType] = useState<string>(item?.type ?? "");
+  const [description, setDescription] = useState(item?.description ?? "");
+  const [reorderLevel, setReorderLevel] = useState(
+    item?.reorderLevel != null ? String(item.reorderLevel) : "",
+  );
+  const [archived, setArchived] = useState(item ? !item.active : false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -25,10 +38,22 @@ export function ItemForm({ item }: { item?: Item }) {
     event.preventDefault();
     setError("");
 
-    if (!item && !QUANTITY.test(quantity.trim())) {
+    if (!item && !DECIMAL.test(quantity.trim())) {
       setError("Quantity must be 0 or more, with up to 3 decimals.");
       return;
     }
+
+    if (reorderLevel.trim() && !DECIMAL.test(reorderLevel.trim())) {
+      setError("Reorder level must be 0 or more, with up to 3 decimals.");
+      return;
+    }
+
+    const catalogFields = {
+      category: category.trim() || undefined,
+      type: type || undefined,
+      description: description.trim() || undefined,
+      reorderLevel: reorderLevel.trim() ? Number(reorderLevel) : undefined,
+    };
 
     setSaving(true);
 
@@ -40,8 +65,14 @@ export function ItemForm({ item }: { item?: Item }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
             item
-              ? { name, unit }
-              : { sku, name, unit, quantity: Number(quantity) },
+              ? { name, unit, ...catalogFields, archived }
+              : {
+                  sku,
+                  name,
+                  unit,
+                  quantity: Number(quantity),
+                  ...catalogFields,
+                },
           ),
         },
       );
@@ -63,8 +94,10 @@ export function ItemForm({ item }: { item?: Item }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       <section className={`${cardClass} space-y-4`}>
+        <h2 className="text-base font-semibold">Basics</h2>
+
         <div>
           <label htmlFor="item-sku" className={labelClass}>
             SKU
@@ -142,6 +175,94 @@ export function ItemForm({ item }: { item?: Item }) {
               className={fieldClass}
             />
           </div>
+        )}
+      </section>
+
+      <section className={`${cardClass} space-y-4`}>
+        <h2 className="text-base font-semibold">Catalog details</h2>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="item-category" className={labelClass}>
+              Category
+            </label>
+            <input
+              id="item-category"
+              maxLength={100}
+              list="item-categories"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={fieldClass}
+            />
+            <datalist id="item-categories">
+              {categories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <label htmlFor="item-type" className={labelClass}>
+              Type
+            </label>
+            <select
+              id="item-type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">Unclassified</option>
+              {ITEM_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {ITEM_TYPE_LABELS[t]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="item-description" className={labelClass}>
+            Description
+          </label>
+          <textarea
+            id="item-description"
+            rows={3}
+            maxLength={1000}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="item-reorder" className={labelClass}>
+            Reorder level
+          </label>
+          <input
+            id="item-reorder"
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder="Optional"
+            value={reorderLevel}
+            onChange={(e) => setReorderLevel(e.target.value)}
+            className={fieldClass}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            The catalog flags the item as low stock when its quantity is at or
+            below this level.
+          </p>
+        </div>
+
+        {item && (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={archived}
+              onChange={(e) => setArchived(e.target.checked)}
+            />
+            Archived (hidden from the catalog by default)
+          </label>
         )}
       </section>
 

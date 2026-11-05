@@ -6,10 +6,14 @@ import { withValidOriginAndJson } from "@/lib/server/security";
 import { NextResponse } from "next/server";
 
 export const POST = withValidOriginAndJson(async (request, body) => {
-  const id = uuidFromPath(request.nextUrl.pathname);
+  // path is /api/items/<id>/adjust, so the id is the second-to-last segment
+  const id = uuidFromPath(request.nextUrl.pathname, 1);
   const parsed = AdjustStockSchema.safeParse(body);
 
-  if (!id || !parsed.success)
+  if (!id)
+    return NextResponse.json({ message: "Invalid item." }, { status: 400 });
+
+  if (!parsed.success)
     return NextResponse.json(
       { message: "Enter a non-zero amount." },
       { status: 400 },

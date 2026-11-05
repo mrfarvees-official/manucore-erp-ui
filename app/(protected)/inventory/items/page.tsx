@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Button, buttonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button";
+import { FilterForm } from "@/components/ui/filter-form";
 import { Pagination } from "@/components/ui/pagination";
-import { fieldClass } from "@/components/ui/styles";
+import { inlineFieldClass } from "@/components/ui/styles";
 import { ItemsTable } from "@/feature/items/items-table";
 import { authedFetch } from "@/lib/api";
 import { can } from "@/lib/auth/permissions";
@@ -73,7 +74,7 @@ async function ItemsContent({ searchParams }: { searchParams: SearchParams }) {
                 )}
             </div>
 
-            <form action="/inventory/items" className="mb-4 flex items-center gap-2">
+            <FilterForm showClear={q !== ""} className="mb-4 flex items-center gap-2">
                 <input
                     type="search"
                     name="q"
@@ -81,20 +82,12 @@ async function ItemsContent({ searchParams }: { searchParams: SearchParams }) {
                     aria-label="Search items"
                     placeholder="Search by SKU or name"
                     maxLength={100}
-                    className={`${fieldClass} max-w-xs`}
+                    className={`${inlineFieldClass} min-w-48 max-w-xs flex-1`}
                 />
-                <Button type="submit" variant="secondary">
-                    Search
-                </Button>
-                {q && (
-                    <Link href="/inventory/items" className={buttonClasses({ variant: "link" })}>
-                        Clear
-                    </Link>
-                )}
                 <span className="ml-auto text-sm text-gray-500">
                     {from}–{to} of {data.totalElements}
                 </span>
-            </form>
+            </FilterForm>
 
             <ItemsTable
                 items={data.items}
