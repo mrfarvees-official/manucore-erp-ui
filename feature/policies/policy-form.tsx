@@ -297,9 +297,11 @@ function GroupEditor({
 export function PolicyForm({
   catalog,
   policy,
+  roles = [],
 }: {
   catalog: Catalog;
   policy?: Policy;
+  roles?: string[];
 }) {
   const router = useRouter();
   const [name, setName] = useState(policy?.name ?? "");
@@ -536,17 +538,43 @@ export function PolicyForm({
                       </option>
                     ))}
                   </select>
-                  <input
-                    aria-label="Subject id"
-                    required
-                    maxLength={150}
-                    value={subject.id}
-                    placeholder="e.g. ADMIN"
-                    onChange={(e) =>
-                      updateSubject(index, { id: e.target.value })
-                    }
-                    className={field}
-                  />
+                  {subject.type === "ROLE" && roles.length > 0 ? (
+                    <select
+                      aria-label="Role"
+                      required
+                      value={subject.id}
+                      onChange={(e) =>
+                        updateSubject(index, { id: e.target.value })
+                      }
+                      className={field}
+                    >
+                      <option value="" disabled>
+                        Select a role
+                      </option>
+                      {roles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                      {subject.id !== "" && !roles.includes(subject.id) && (
+                        <option value={subject.id}>
+                          {subject.id} (not in roles list)
+                        </option>
+                      )}
+                    </select>
+                  ) : (
+                    <input
+                      aria-label="Subject id"
+                      required
+                      maxLength={150}
+                      value={subject.id}
+                      placeholder="e.g. ADMIN"
+                      onChange={(e) =>
+                        updateSubject(index, { id: e.target.value })
+                      }
+                      className={field}
+                    />
+                  )}
                   <Button
                     variant="secondary"
                     size="sm"

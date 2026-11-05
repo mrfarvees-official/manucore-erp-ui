@@ -42,7 +42,7 @@ const NAVIGATION: NavGroupDef[] = [
       },
       {
         label: "Adjustments",
-        href: "/inventory/adjustments", 
+        href: "/inventory/adjustments",
         requires: "INVENTORY.ADJUSTMENTS:READ",
       },
     ],
@@ -51,6 +51,7 @@ const NAVIGATION: NavGroupDef[] = [
     title: "Administration",
     items: [
       { label: "Users", href: "/admin/users", adminOnly: true },
+      { label: "Roles", href: "/admin/roles", adminOnly: true },
       { label: "Roles & Policies", href: "/admin/policies", adminOnly: true },
     ],
   },

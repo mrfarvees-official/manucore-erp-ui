@@ -5,6 +5,7 @@ import { authedFetch } from "@/lib/api";
 import { requireAdmin } from "@/lib/auth/session";
 import type { Catalog, Policy } from "@/lib/policies";
 import { loadOrRedirect } from "@/lib/server/load";
+import { loadRoleNames } from "@/lib/server/loads/roles";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -21,14 +22,17 @@ async function EditPolicyContent({
     notFound();
   }
 
-  const [policy, catalog] = await loadOrRedirect(() =>
-    Promise.all([
-      authedFetch<Policy>(`/api/v1/authorization/policies/${id}`),
-      authedFetch<Catalog>("/api/v1/authorization/catalog"),
-    ]),
-  );
+  const [[policy, catalog], roles] = await Promise.all([
+    loadOrRedirect(() =>
+      Promise.all([
+        authedFetch<Policy>(`/api/v1/authorization/policies/${id}`),
+        authedFetch<Catalog>("/api/v1/authorization/catalog"),
+      ]),
+    ),
+    loadRoleNames(),
+  ]);
 
-  return <PolicyForm key={policy.id} catalog={catalog} policy={policy} />;
+  return <PolicyForm key={policy.id} catalog={catalog} policy={policy} roles={roles} />;
 }
 
 export default function EditPolicyPage({
