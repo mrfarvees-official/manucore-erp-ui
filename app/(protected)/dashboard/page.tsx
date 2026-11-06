@@ -16,14 +16,13 @@ async function UserWelcome() {
 export default function DashboardPage() {
     return (
         <main className="min-h-screen bg-white px-6 py-12 text-gray-900">
-            <div className="mx-auto max-w-5xl">
+            <div className="mx-auto max-w-8xl">
                 <h1 className="text-3xl font-bold">Dashboard</h1>
                 <Suspense
                     fallback={<p className="mt-3 text-gray-400">Loading...</p>}
                 >
                     <UserWelcome />
                 </Suspense>
-                <LogoutButton />
             </div>
         </main>
     );

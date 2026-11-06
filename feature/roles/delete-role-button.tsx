@@ -28,7 +28,7 @@ export function DeleteRoleButton({
     setBusy(true);
 
     try {
-      const response = await fetch(`/api/roles/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/v1/roles/${id}`, { method: "DELETE" });
 
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));

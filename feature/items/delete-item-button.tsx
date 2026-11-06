@@ -16,7 +16,7 @@ export function DeleteItemButton({ id, label }: { id: string; label: string }) {
         setBusy(true);
 
         try {
-            const response = await fetch(`/api/items/${id}`, { method: "DELETE" });
+            const response = await fetch(`/api/v1/items/${id}`, { method: "DELETE" });
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));

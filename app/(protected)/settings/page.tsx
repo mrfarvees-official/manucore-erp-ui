@@ -1,33 +1,28 @@
-import { Badge } from "@/components/ui/badge";
-import { cardClass } from "@/components/ui/styles";
+import { Suspense } from "react";
+import { AccountForm } from "@/feature/settings/account-form";
+import { PasswordForm } from "@/feature/settings/password-form";
+import { authedFetch } from "@/lib/api";
+import { loadOrRedirect } from "@/lib/server/load";
+import type { AccountSettings } from "@/lib/settings";
+import { timezones } from "@/lib/settings-options";
 
-const SECTIONS = [
-  { title: "Password", text: "Change the password you sign in with." },
-  { title: "Notifications", text: "Choose what you are notified about." },
-  { title: "Appearance", text: "Language, date format and theme." },
-];
+async function AccountContent() {
+  const settings = await loadOrRedirect(() =>
+    authedFetch<AccountSettings>("/api/v1/auth/me/settings"),
+  );
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <AccountForm settings={settings} timezones={timezones()} />
+      <PasswordForm />
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   return (
-    <main className="mx-auto max-w-8xl px-6 py-8 text-gray-900">
-      <h1 className="mb-6 text-2xl font-bold">Settings</h1>
-
-      <section
-        className={`${cardClass} max-w-2xl divide-y divide-gray-100 p-0`}
-      >
-        {SECTIONS.map((section) => (
-          <div
-            key={section.title}
-            className="flex items-center justify-between gap-4 px-5 py-4"
-          >
-            <div>
-              <h2 className="text-sm font-semibold">{section.title}</h2>
-              <p className="text-sm text-gray-500">{section.text}</p>
-            </div>
-            <Badge>Soon</Badge>
-          </div>
-        ))}
-      </section>
-    </main>
+    <Suspense fallback={<p className="text-gray-400">Loading...</p>}>
+      <AccountContent />
+    </Suspense>
   );
 }

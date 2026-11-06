@@ -50,6 +50,7 @@ const NAVIGATION: NavGroupDef[] = [
   {
     title: "Administration",
     items: [
+      { label: "Audit log", href: "/admin/audit", adminOnly: true },
       { label: "Users", href: "/admin/users", adminOnly: true },
       { label: "Roles", href: "/admin/roles", adminOnly: true },
       { label: "Roles & Policies", href: "/admin/policies", adminOnly: true },

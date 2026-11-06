@@ -6,7 +6,7 @@ import { withValidOriginAndJson } from "@/lib/server/security";
 import { NextResponse } from "next/server";
 
 export const POST = withValidOriginAndJson(async (request, body) => {
-  // path is /api/items/<id>/adjust, so the id is the second-to-last segment
+  // path is /api/v1/items/<id>/adjust, so the id is the second-to-last segment
   const id = uuidFromPath(request.nextUrl.pathname, 1);
   const parsed = AdjustStockSchema.safeParse(body);
 

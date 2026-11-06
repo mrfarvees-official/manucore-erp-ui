@@ -51,7 +51,7 @@ export function AdjustStockButton({ item }: { item: Item }) {
     setError("");
 
     try {
-      const response = await fetch(`/api/items/${item.id}/adjust`, {
+      const response = await fetch(`/api/v1/items/${item.id}/adjust`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

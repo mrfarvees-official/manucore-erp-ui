@@ -59,7 +59,7 @@ export function ItemForm({
 
     try {
       const response = await fetch(
-        item ? `/api/items/${item.id}` : "/api/items",
+        item ? `/api/v1/items/${item.id}` : "/api/v1/items",
         {
           method: item ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },

@@ -2,11 +2,15 @@ import "server-only";
 
 import type { CurrentUser } from "@/lib/auth/session";
 
-/**
- * Display name of the user's company. Attach the real lookup here later;
- * until then the tenant id is shown in a readable form ("acme-corp" -> "Acme Corp").
- */
+/** Display name of the user's company, as stored in the tenants table. */
 export async function loadTenantName(user: CurrentUser): Promise<string> {
+  const name = user.tenantName?.trim();
+
+  if (name) {
+    return name;
+  }
+
+  // Fallback for an older backend: "acme-corp" -> "Acme Corp".
   return user.tenantId
     .split(/[-_]/)
     .filter(Boolean)

@@ -85,7 +85,7 @@ export function UserForm({
     setSaving(true);
 
     try {
-      const response = await fetch(user ? `/api/users/${user.id}` : "/api/users", {
+      const response = await fetch(user ? `/api/v1/users/${user.id}` : "/api/v1/users", {
         method: user ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(

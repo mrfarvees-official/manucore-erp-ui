@@ -13,6 +13,8 @@ async function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) {
     loadNotifications(),
   ]);
 
+  console.log(tenantName);
+
   return (
     <AppShell
       groups={getNavigation(user)}

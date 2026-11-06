@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactStrictMode: false,
+  allowedDevOrigins: ["*.localhost"],
   turbopack: {
     rules: {
       "*.css": {

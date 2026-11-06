@@ -20,6 +20,9 @@ const LABELS: Record<string, string> = {
   settings: "Settings",
   new: "New",
   edit: "Edit",
+  audit: "Audit log",
+  company: "Company",
+  domains: "Domains",
 };
 
 /** What an id segment means depends on the section it sits in. */

@@ -346,7 +346,7 @@ export function PolicyForm({
 
     try {
       const response = await fetch(
-        policy ? `/api/policies/${policy.id}` : "/api/policies",
+        policy ? `/api/v1/policies/${policy.id}` : "/api/v1/policies",
         {
           method: policy ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },

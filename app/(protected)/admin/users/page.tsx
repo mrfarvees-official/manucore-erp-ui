@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Button, buttonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button";
+import { FilterForm } from "@/components/ui/filter-form";
 import { Pagination } from "@/components/ui/pagination";
-import { fieldClass } from "@/components/ui/styles";
+import { inlineFieldClass } from "@/components/ui/styles";
 import { UsersTable } from "@/feature/users/users-table";
 import { authedFetch } from "@/lib/api";
 import { can } from "@/lib/auth/permissions";
@@ -73,8 +74,8 @@ async function UsersContent({ searchParams }: { searchParams: SearchParams }) {
         )}
       </div>
 
-      <form
-        action="/admin/users"
+      <FilterForm
+        showClear={filtered}
         className="mb-4 flex flex-wrap items-center gap-2"
       >
         <input
@@ -84,33 +85,23 @@ async function UsersContent({ searchParams }: { searchParams: SearchParams }) {
           aria-label="Search users"
           placeholder="Search by name or email"
           maxLength={100}
-          className={`${fieldClass} max-w-xs`}
+          className={`${inlineFieldClass} min-w-48 flex-1`}
         />
         <select
           name="status"
           defaultValue={status}
+          data-default="ALL"
           aria-label="Status"
-          className={`${fieldClass} w-auto`}
+          className={inlineFieldClass}
         >
           <option value="ALL">All users</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
         </select>
-        <Button type="submit" variant="secondary">
-          Search
-        </Button>
-        {filtered && (
-          <Link
-            href="/admin/users"
-            className={buttonClasses({ variant: "link" })}
-          >
-            Clear
-          </Link>
-        )}
         <span className="ml-auto text-sm text-gray-500">
           {from}–{to} of {data.totalElements}
         </span>
-      </form>
+      </FilterForm>
 
       <UsersTable
         users={data.items}

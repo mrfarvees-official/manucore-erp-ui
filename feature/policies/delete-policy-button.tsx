@@ -16,7 +16,7 @@ export function DeletePolicyButton({ id, name }: { id: string; name: string }) {
         setBusy(true);
 
         try {
-            const response = await fetch(`/api/policies/${id}`, { method: "DELETE" });
+            const response = await fetch(`/api/v1/policies/${id}`, { method: "DELETE" });
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));

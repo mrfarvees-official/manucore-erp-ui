@@ -30,7 +30,7 @@ export function RoleForm({ role }: { role?: Role }) {
 
     try {
       const response = await fetch(
-        role ? `/api/roles/${role.id}` : "/api/roles",
+        role ? `/api/v1/roles/${role.id}` : "/api/v1/roles",
         {
           method: role ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },

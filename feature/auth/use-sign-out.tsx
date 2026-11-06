@@ -6,7 +6,7 @@ export function useSignOut() {
   const router = useRouter();
 
   return async function signOut() {
-    const response = await fetch("/api/auth/logout", { method: "POST" });
+    const response = await fetch("/api/v1/auth/logout", { method: "POST" });
 
     if (response.ok) {
       router.replace("/login");

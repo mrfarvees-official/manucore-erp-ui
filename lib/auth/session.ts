@@ -21,6 +21,10 @@ export type CurrentUser = {
   email: string;
   name: string;
   tenantId: string;
+  tenantName?: string;
+  timezone?: string;
+  locale?: string;
+  currency?: string;
   roles: string[];
   permissionsAvailable: boolean;
   permissions: PermissionMatrix | null;
